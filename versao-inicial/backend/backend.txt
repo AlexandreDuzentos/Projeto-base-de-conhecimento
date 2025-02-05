@@ -1,0 +1,871 @@
+O QUE É O CORS?
+
+CORS (Cross-Origin Resource Sharing) é um mecanismo de segurança implementado nos navegadores para
+controlar como os recursos de uma página da web podem ser acessados por outra origem (domínio, protocolo
+ou porta). Isso é relevante principalmente quando você está fazendo requisições entre diferentes
+domínios, o que é comum em APIs e aplicações web modernas.
+
+No contexto de **Node.js**, o CORS se refere à configuração de permissões para permitir ou bloquear o
+acesso a recursos da sua aplicação a partir de origens externas.
+
+Por exemplo, se o seu servidor Node.js estiver servindo uma API, e você quiser permitir que essa API
+seja acessada de um frontend hospedado em outro domínio (ex: frontend em `https://meuapp.com` e
+backend em `https://api.meuapp.com`), você precisará configurar o CORS para que o navegador permita
+essa interação.
+
+Em Node.js, é comum usar o **middleware `cors`** para lidar com isso. O `cors` é um pacote que
+simplifica a configuração do CORS.
+
+### Exemplo de como configurar CORS com o pacote `cors` no Node.js:
+
+1. Primeiro, instale o pacote:
+
+   ```bash
+   npm install cors
+   ```
+
+2. Depois, configure o middleware no seu código:
+
+   ```javascript
+   const express = require('express');
+   const cors = require('cors');
+
+   const app = express();
+
+   // Permitir todas as origens
+   app.use(cors());
+
+   // Ou configurar para permitir uma origem específica:
+   app.use(cors({
+     origin: 'https://meuapp.com'
+   }));
+
+   app.get('/', (req, res) => {
+     res.send('API funcionando com CORS!');
+   });
+
+   app.listen(3000, () => {
+     console.log('Servidor rodando na porta 3000');
+   });
+   ```
+
+No exemplo acima, o servidor Express permite que qualquer origem acesse os recursos da API, ou, se
+configurado com uma origem específica, só a partir dessa origem o acesso será permitido.
+
+### Como o CORS funciona?
+Quando o navegador faz uma requisição a uma origem diferente da atual (cross-origin), ele inclui um
+cabeçalho chamado `Origin`. O servidor então verifica se a origem da requisição é permitida e responde 
+com os cabeçalhos CORS adequados (como `Access-Control-Allow-Origin`), informando ao navegador se ele
+pode ou não permitir o acesso.
+
+Se a origem for permitida, o navegador deixa a requisição ser concluída; caso contrário, ele bloqueia
+a requisição e, normalmente, exibe um erro no console.
+
+
+Nós temos duas aplicações, o backend e o frontend, uma aplicação, que é o backend,
+ela precisa do node, isso tanto em um ambiente de desenvolvimento tanto de
+produção, ela roda em cima do node, pois ela usa a API do node, por outro lado, a nossa aplicação frontend não
+precisa do node em ambiente de produção, pois o build gerado durante o desenvolvimento
+é de arquivos estáticos, nomeadamente HTML,CSS,JAVASCRIPT, IMAGEM, FONTE, tudo isso
+são arquivos estáticos que podem ser executados em um servidor Apache, ngnix, na
+Amazon(S3) que é um repositório de arquivos estáticos, como um site feito em Vue.js,
+React, desse modo, não há necessidade de configurar a sua aplicação frontend usando
+o node para a produção apenas para o desenvolvimento, por conta dos pacotes que
+serão instalados, como o Create-React-App, o vue-cli.
+
+
+AUTHSECRET,TOKEN, JWT:
+
+O `authSecret` em um arquivo `.env` dentro de uma aplicação Node.js normalmente
+se refere a uma chave secreta utilizada para autenticação ou assinatura de tokens,
+como JSON Web Tokens (JWT), por exemplo. Essa chave é crucial para garantir a
+segurança do processo de autenticação e autorização na aplicação.
+
+### Usos comuns do `authSecret`:
+
+1. **Assinatura de JWT**: Quando você utiliza JWT para autenticar usuários, 
+o `authSecret` é utilizado para assinar o token. Esse token é então enviado ao
+cliente (geralmente no cabeçalho de requisição) e, quando o servidor recebe o
+token novamente, ele pode usar a chave secreta para verificar se o token não foi
+alterado.
+
+   Exemplo:
+   ```javascript
+   const jwt = require('jsonwebtoken');
+   const secretKey = process.env.authSecret;
+
+   // Criando o token
+   const token = jwt.sign({ userId: 1 }, secretKey, { expiresIn: '1h' });
+
+   // Verificando o token
+   jwt.verify(token, secretKey, (err, decoded) => {
+     if (err) {
+       return res.status(401).send('Token inválido');
+     }
+     res.send('Token válido');
+   });
+   ```
+
+2. **Segurança**: A chave secreta (`authSecret`) deve ser mantida em segredo, ou
+seja, ela **não deve ser compartilhada publicamente**. É por isso que, normalmente,
+ela é armazenada em um arquivo `.env` para que não fique exposta no código fonte. 
+No arquivo `.env`, ela pode ser definida da seguinte forma:
+
+   ```env
+   authSecret=MinhaChaveSuperSecreta
+   ```
+
+3. **Evitar Hardcoding**: A utilização do `.env` permite evitar o hardcoding de
+segredos diretamente no código-fonte, o que ajuda a melhorar a segurança e
+facilita a alteração dessa chave sem necessidade de modificar o código da
+aplicação.
+
+### Exemplo de uso do `.env` com `authSecret`:
+
+Arquivo `.env`:
+```env
+authSecret=MinhaChaveSuperSecreta
+```
+
+No código Node.js:
+```javascript
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
+
+// Recuperando a chave secreta do .env
+const secretKey = process.env.authSecret;
+
+// Gerando um token
+const token = jwt.sign({ userId: 1 }, secretKey, { expiresIn: '1h' });
+
+console.log(token);
+```
+
+### Resumo:
+O `authSecret` é uma chave usada para garantir a segurança nas operações de
+autenticação, como a assinatura de tokens JWT. Ele deve ser mantido em um local
+seguro (como o arquivo `.env`) e nunca ser exposto no código-fonte da aplicação.
+
+
+Assinar um token JWT (JSON Web Token) significa aplicar uma assinatura digital ao
+token, que garante sua integridade e autenticidade. A assinatura permite que o
+servidor ou a aplicação verifique se o conteúdo do token não foi alterado durante
+a transmissão e se ele foi realmente emitido por uma fonte confiável (o servidor
+ou o serviço que o gerou).
+
+### O que compõe um token JWT?
+
+Um token JWT é composto por três partes:
+
+1. **Header (Cabeçalho)**: Contém informações sobre o algoritmo de assinatura
+   utilizado (geralmente `HS256`, `RS256` etc.).
+   Exemplo de cabeçalho:
+   ```json
+   {
+     "alg": "HS256",
+     "typ": "JWT"
+   }
+   ```
+
+2. **Payload (Corpo)**: Contém as informações que você deseja transportar
+   (como o ID do usuário, permissões, etc.). Esse conteúdo pode ser lido por
+   qualquer pessoa que tenha o token, mas não pode ser alterado sem invalidar a
+   assinatura.
+   Exemplo de payload:
+   ```json
+   {
+     "sub": "1234567890",
+     "name": "João Silva",
+     "iat": 1516239022
+   }
+   ```
+
+3. **Signature (Assinatura)**: A parte mais importante. A assinatura é criada
+utilizando o algoritmo especificado no cabeçalho e uma chave secreta (ou um par
+de chaves pública/privada, dependendo do algoritmo). Essa assinatura garante que
+o token não foi alterado depois de sua criação.
+
+### Como funciona a assinatura?
+
+Quando você cria um JWT, você usa a chave secreta (no caso de algoritmos
+simétricos, como o `HS256`) ou um par de chaves (em algoritmos assimétricos, como
+ o `RS256`) para gerar a assinatura. O processo de assinatura pode ser explicado
+da seguinte forma:
+
+1. O cabeçalho e o corpo do token (payload) são convertidos para o formato JSON e,
+em seguida, codificados em Base64Url.
+
+2. Uma string formada pela combinação do cabeçalho e do payload codificados é
+então assinada utilizando a chave secreta ou a chave privada, dependendo do
+algoritmo.
+
+3. A assinatura gerada é então concatenada com o cabeçalho e o payload, formando
+o token JWT final.
+
+### Exemplo de como a assinatura funciona:
+
+Vamos imaginar que você tenha a seguinte informação no cabeçalho e payload:
+
+**Cabeçalho**:
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+**Payload**:
+```json
+{
+  "sub": "1234567890",
+  "name": "João Silva",
+  "iat": 1516239022
+}
+```
+
+O processo de assinatura seria o seguinte:
+
+1. O cabeçalho e o payload são codificados em Base64Url:
+   - Cabeçalho codificado: `eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9`
+   - Payload codificado: `eyJzdWIiOiAiMTIzNDU2Nzg5MCIsICJuYW1lIjogIkpvw6NvbyBMaW92YSIsICJpYXQiOiAiMTUxNjIzOTAyMiJ9`
+
+2. A string combinada do cabeçalho e payload fica assim:
+   ```text
+   eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJzdWIiOiAiMTIzNDU2Nzg5MCIsICJuYW1lIjogIkpvw6NvbyBMaW92YSIsICJpYXQiOiAiMTUxNjIzOTAyMiJ9
+   ```
+
+3. A assinatura é gerada utilizando a chave secreta (vamos chamar de `MinhaChaveSecreta`) e o algoritmo `HS256`. O resultado seria algo assim (gerado de forma criptográfica):
+   ```text
+   hRrD0VuS9tYdoq1J78Qwv5YZ4G6wEwHbgqk4Wx9e8do
+   ```
+
+4. O token JWT final ficaria assim:
+   ```text
+   eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJzdWIiOiAiMTIzNDU2Nzg5MCIsICJuYW1lIjogIkpvw6NvbyBMaW92YSIsICJpYXQiOiAiMTUxNjIzOTAyMiJ9.hRrD0VuS9tYdoq1J78Qwv5YZ4G6wEwHbgqk4Wx9e8do
+   ```
+
+### Como a assinatura garante a segurança?
+
+- **Integridade**: Como o token é assinado com uma chave secreta ou chave privada,
+qualquer alteração no conteúdo do cabeçalho ou payload (mesmo uma vírgula ou
+espaço) vai invalidar a assinatura. Ao verificar a assinatura no servidor, você
+pode garantir que o conteúdo não foi alterado.
+  
+- **Autenticidade**: A assinatura permite verificar que o token foi realmente
+emitido por uma fonte confiável, já que apenas quem tem a chave secreta ou chave
+privada pode criar ou validar essa assinatura.
+
+### Verificação da assinatura:
+
+Quando o servidor recebe um JWT, ele pode verificar a assinatura utilizando a
+chave secreta (no caso do algoritmo simétrico) ou a chave pública (no caso do
+algoritmo assimétrico) para garantir que o token não foi modificado.
+
+Se o servidor calcular a assinatura do token com a chave correta e ela
+corresponder à assinatura que acompanha o token, então o token é válido. Caso
+contrário, ele é rejeitado.
+
+### Resumo:
+
+Assinar um token JWT significa aplicar uma assinatura digital ao token, usando
+uma chave secreta ou uma chave privada. Essa assinatura garante que o token não
+foi alterado durante o tráfego de rede e que ele foi emitido por uma fonte
+confiável, permitindo a autenticação e a verificação da integridade dos dados do
+token.
+
+
+Um token é uma sequência de caracteres que representa uma informação ou
+autorização, geralmente usada para autenticação ou autorização em sistemas.
+Ele pode ser utilizado para verificar a identidade de um usuário ou conceder
+acesso a recursos protegidos, sem a necessidade de reautenticação constante.
+
+
+JWT (JSON Web Token) é um padrão aberto (RFC 7519) para a criação de tokens de
+acesso que permitem a autenticação e a troca de informações seguras entre
+diferentes partes. Ele é amplamente usado para autenticação em APIs e aplicações
+web.
+
+### Estrutura do JWT
+O JWT é composto por três partes, separadas por pontos (`.`):
+
+1. **Header (Cabeçalho)** – Contém o tipo do token (`JWT`) e o algoritmo de
+assinatura (exemplo: `HS256` ou `RS256`).
+
+2. **Payload (Carga útil)** – Contém as informações (claims) do usuário ou da
+aplicação, como ID do usuário, permissões e tempo de expiração.
+
+3. **Signature (Assinatura)** – Garante a integridade do token e é gerada com uma
+chave secreta ou chave privada, dependendo do algoritmo usado.
+
+Exemplo de JWT codificado:
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+```
+
+### Como funciona?
+1. O cliente (frontend) envia credenciais para o servidor.
+2. O servidor valida as credenciais e gera um JWT assinado.
+3. O cliente recebe o JWT e o usa para acessar recursos protegidos.
+4. O servidor valida o JWT antes de conceder acesso.
+
+### Vantagens do JWT
+- **Sem estado (Stateless)**: Não requer armazenamento no servidor (diferente de
+sessões).
+
+- **Seguro**: Pode ser assinado e criptografado.
+
+- **Escalável**: Ideal para arquiteturas distribuídas, como microsserviços.
+
+### Desvantagens
+- **Tamanho maior**: Mais pesado que um simples token de sessão.
+- **Não pode ser revogado facilmente**: A menos que seja implementado um sistema
+de blacklist.
+
+Claro! Vamos simplificar com exemplos.  
+
+### 📌 O que é Base64?
+O **Base64** é uma forma de codificar dados binários em texto, usando um conjunto de 64 caracteres seguros. Ele é útil quando queremos transmitir dados que podem conter caracteres especiais, como em URLs ou JSON Web Tokens (**JWTs**).
+
+#### 🔹 Exemplo de codificação Base64:
+Se tivermos o texto **"Olá, JWT!"**, ao codificá-lo em **Base64**, ele se torna:
+```plaintext
+T2zDoSwgSldUIQ==
+```
+Isso permite que o texto seja transmitido de forma segura sem perder informações.
+
+---
+
+### 📌 Uso do Base64 no JWT
+O **JWT** tem três partes: **header**, **payload** e **signature**. As duas primeiras são codificadas em **Base64Url**.
+
+#### 🔹 Exemplo de um JWT:
+```plaintext
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMywibmFtZSI6Ikpvw6NvIn0.5Vf5K5HqX-dA5zFh2cT4vJmFLR3YxkF9vxDk4i9GSaM
+```
+📌 Vamos decodificar cada parte:
+
+1️⃣ **Header (Cabeçalho)**
+```plaintext
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+```
+🔽 Após decodificar de Base64:
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+2️⃣ **Payload (Dados)**
+```plaintext
+eyJ1c2VySWQiOjEyMywibmFtZSI6Ikpvw6NvIn0
+```
+🔽 Após decodificar de Base64:
+```json
+{
+  "userId": 123,
+  "name": "João"
+}
+```
+
+3️⃣ **Signature (Assinatura)**
+A assinatura garante que o token não foi alterado e não é apenas Base64, mas sim um hash seguro.
+
+---
+
+### 📌 Resumo
+- **Base64** transforma dados em texto seguro para transmissão.
+- **No JWT**, usamos **Base64Url** para codificar **header** e **payload**.
+- **A assinatura não é apenas Base64**, pois precisa ser validada com uma chave secreta.
+
+Um texto não codificado em **Base64** pode perder informações quando transmitido por canais que não suportam certos caracteres especiais. Isso acontece porque alguns sistemas e protocolos foram projetados para lidar apenas com **ASCII seguro** (como letras, números e poucos símbolos).  
+
+### 🔹 Problemas que podem ocorrer:
+1️⃣ **Caracteres especiais podem ser interpretados incorretamente**  
+   - Exemplo: O caractere `"+"` pode ser tratado como espaço em algumas URLs.
+   - O caractere `"/"` pode ser interpretado como um separador de diretórios.
+
+2️⃣ **Perda de formatação ao transmitir dados binários**  
+   - Se um arquivo de imagem ou JSON binário for enviado sem codificação, ele pode quebrar ou ser corrompido.
+
+3️⃣ **Incompatibilidade entre sistemas**  
+   - Alguns bancos de dados e protocolos não suportam certos caracteres diretamente.
+
+### 🔹 Como o **Base64** resolve isso?  
+O **Base64** converte os dados em um formato seguro que usa apenas **64 caracteres bem suportados** (A-Z, a-z, 0-9, "+", "/" e "="). Isso garante que a informação seja **transmitida corretamente** sem modificações indesejadas.  
+
+🔹 **Exemplo prático**:  
+Se tentarmos enviar um JSON com acentos e caracteres especiais sem codificação, pode haver problemas de compatibilidade.  
+```json
+{ "nome": "João & Maria" }
+```
+Codificando em **Base64**:
+```plaintext
+eyJub21lIjogIkpvw6NvICYgTWFyaWEifQ==
+```
+Agora ele pode ser enviado com segurança sem risco de alteração.
+
+### 🔹 Resumo:
+- **Sem Base64** → Risco de perda de caracteres especiais.
+- **Com Base64** → Dados protegidos e compatíveis com qualquer sistema.  
+
+PASSPORT:
+
+O **Passport** é um middleware de autenticação para **Node.js**, amplamente usado
+com **Express.js**. Ele facilita a autenticação de usuários em aplicações web e
+APIs, suportando diversos métodos de autenticação, como **JWT, OAuth, Google,
+Facebook, Local (usuário e senha)** e muitos outros.  
+
+---
+
+### 📌 **Principais Recursos do Passport**
+✅ **Modular** → Suporte a múltiplas estratégias de autenticação.  
+✅ **Flexível** → Pode ser integrado com qualquer framework Node.js.  
+✅ **Sessões** → Suporte opcional a autenticação baseada em sessão (usando cookies).  
+✅ **Passport Strategies** → Plugins para diferentes métodos de login (Google, Facebook, JWT, etc.).
+
+---
+
+### 📌 **Como Funciona?**
+O **Passport** funciona através de **estratégias**. Cada estratégia define um
+método de autenticação específico, como login com e-mail/senha ou autenticação
+via JWT.
+
+1️⃣ **O usuário faz login** (exemplo: e-mail e senha).  
+2️⃣ **O Passport verifica as credenciais** usando uma estratégia (exemplo:
+`passport-jwt`).  
+3️⃣ **Se válido**, gera um token ou inicia uma sessão.  
+4️⃣ **Se inválido**, retorna erro.  
+
+---
+
+### 📌 **Usando Passport com JWT (API REST)**
+Caso esteja desenvolvendo uma **API REST**, é comum usar **`passport-jwt`** para
+autenticação via tokens JWT.  
+
+🔹 **Exemplo básico com JWT**:
+```js
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+
+const opts = {
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: 'seu_segredo_secreto'
+};
+
+passport.use(new JwtStrategy(opts, (jwtPayload, done) => {
+  const user = users.find(u => u.id === jwtPayload.id);
+  if (user) return done(null, user);
+  return done(null, false);
+}));
+```
+🔹 Depois, para proteger rotas:
+```js
+app.get('/profile', passport.authenticate('jwt', { session: false }), (req, res) => {
+  res.json({ message: 'Bem-vindo ao perfil!', user: req.user });
+});
+```
+
+---
+
+### 📌 **Quando Usar Passport?**
+✔️ **Se sua aplicação precisar de múltiplos métodos de login** (Google, Facebook, GitHub, JWT, etc.).  
+✔️ **Se quiser facilitar a autenticação em APIs e aplicações web**.  
+✔️ **Se precisar de suporte a sessões e cookies automaticamente**.  
+
+Se sua aplicação **só usa JWT**, pode ser mais simples implementar a autenticação
+manualmente com `jsonwebtoken`, sem precisar do **Passport**.
+
+Esse código configura a estratégia de autenticação **JWT** no **Passport.js** para uma aplicação **Node.js**. Vou explicar detalhadamente cada parte.
+
+---
+
+## 🔹 **Explicação do Código**
+```js
+const passport = require('passport');
+const passportJwt = require('passport-jwt');
+const {Extract, Strategy} = passportJwt
+```
+🔹 **O que acontece aqui?**  
+- Importamos o passport
+- Importamos o password-jwt
+- Importamos a **estratégia JWT** do `passport-jwt`.  
+- Importamos o **extrator do token** (`Extract`) para pegar o JWT da requisição.  
+
+---
+
+### **1️⃣ Configuração das Opções da Estratégia**
+```js
+const opts = {
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: 'seu_segredo_secreto'
+};
+```
+🔹 **Explicação das opções (`opts`)**:  
+- **`jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()`**  
+  - Diz ao Passport para extrair o token JWT do **header** `Authorization` no formato `Bearer <token>`.  
+  - Exemplo de cabeçalho válido:
+    ```
+    Authorization: Bearer eyJhbGciOiJIUzI1...
+    ```
+  
+- **`secretOrKey: 'seu_segredo_secreto'`**  
+  - Define a chave secreta usada para verificar a assinatura do JWT.  
+  - Essa chave deve ser **a mesma usada para assinar o token no backend**.
+
+---
+
+### **2️⃣ Definição da Estratégia JWT no Passport**
+```js
+passport.use(new JwtStrategy(opts, (jwtPayload, done) => {
+  const user = users.find(u => u.id === jwtPayload.id);
+  if (user) return done(null, user);
+  return done(null, false);
+}));
+```
+🔹 **O que acontece aqui?**  
+1️⃣ Criamos uma **nova estratégia JWT** usando `new JwtStrategy(opts, callback)`.  
+2️⃣ O Passport verifica o JWT **automaticamente** com base nas opções (`opts`).  
+3️⃣ Se o JWT for válido, a função callback é chamada com `jwtPayload`.  
+
+#### **Explicação do Callback `(jwtPayload, done) => {}`**
+- **`jwtPayload`**: Contém os dados do usuário extraídos do token JWT (exemplo abaixo).
+- **`done(null, user)`**: O usuário foi encontrado, então o Passport retorna o usuário autenticado.
+- **`done(null, false)`**: Se o usuário não for encontrado, o acesso é negado.
+
+🔹 **Exemplo do `jwtPayload` extraído de um JWT válido**:
+```json
+{
+  "id": 123,
+  "name": "João",
+  "iat": 1700000000,
+  "exp": 1700003600
+}
+```
+- `id`: Identificador do usuário.
+- `iat`: Data de criação do token.
+- `exp`: Data de expiração do token.
+
+🔹 **Como o usuário é buscado?**
+```js
+const user = users.find(u => u.id === jwtPayload.id);
+```
+- `users` é uma lista fictícia de usuários cadastrados.
+- Busca-se um usuário pelo **ID extraído do token**.
+
+---
+
+## 🔹 **Como Usar Essa Estratégia no Express?**
+Após configurar a estratégia, podemos usá-la para proteger rotas.
+
+```js
+const express = require('express');
+const passport = require('passport');
+
+const app = express();
+app.use(passport.initialize());
+
+// Rota protegida com JWT
+app.get('/perfil', passport.authenticate('jwt', { session: false }), (req, res) => {
+  res.json({ message: 'Bem-vindo ao seu perfil!', user: req.user });
+});
+
+app.listen(3000, () => console.log('Servidor rodando na porta 3000'));
+```
+📌 Aqui:
+- Qualquer requisição a `/perfil` **precisa de um token JWT válido**.
+- Se o token for válido, `req.user` conterá os dados do usuário.
+
+---
+
+## 🔹 **Resumo**
+✔ **passport-jwt** → Middleware para autenticação JWT no Passport.  
+✔ **Extrai o JWT do cabeçalho** `Authorization: Bearer <token>`.  
+✔ **Verifica a assinatura do JWT** usando uma chave secreta.  
+✔ **Busca o usuário pelo ID do payload do JWT**.  
+✔ **Retorna o usuário autenticado ou rejeita a requisição**.  
+
+---
+
+O **Mongoose** é uma biblioteca do **Node.js** usada para interagir com o banco de dados **MongoDB**. Ele funciona como uma **ORM (Object-Relational Mapping)**, mas para bancos NoSQL, sendo mais precisamente um **ODM (Object-Document Mapping)**.  
+
+---
+
+## 🔹 **Por que usar o Mongoose?**
+✔ **Facilita a modelagem de dados** → Permite criar **Schemas** e definir a estrutura dos documentos.  
+✔ **Validação de dados** → Garante que os dados inseridos no banco estejam no formato correto.  
+✔ **Consultas poderosas** → Fornece métodos mais intuitivos para buscas, updates e remoções.  
+✔ **Middleware e Hooks** → Permite executar funções antes ou depois das operações no banco.  
+
+---
+
+## 🔹 **Exemplo Prático com Mongoose**
+### **1️⃣ Instalando o Mongoose**
+```sh
+npm install mongoose
+```
+
+### **2️⃣ Conectando ao MongoDB**
+```js
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost:27017/meuBanco', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('Conectado ao MongoDB!'))
+.catch(err => console.error('Erro ao conectar:', err));
+```
+📌 Aqui, estamos conectando ao banco **"meuBanco"** no MongoDB local.
+
+---
+
+### **3️⃣ Criando um Schema e Model**
+```js
+const usuarioSchema = new mongoose.Schema({
+  nome: { type: String, required: true },
+  idade: { type: Number, min: 0 },
+  email: { type: String, required: true, unique: true }
+});
+
+const Usuario = mongoose.model('Usuario', usuarioSchema);
+```
+📌 **Explicação**:  
+- Definimos um **Schema** (`usuarioSchema`) que representa a estrutura do
+documento no MongoDB. 
+
+- Criamos um **Model** (`Usuario`), que será usado para interagir com a coleção
+no banco.
+
+---
+
+### **5️⃣ Buscando Usuários**
+```js
+Usuario.find({ idade: { $gte: 18 } })
+  .then(usuarios => console.log('Usuários adultos:', usuarios))
+  .catch(err => console.error(err));
+```
+📌 Retorna todos os usuários com idade maior ou igual a **18**.
+
+---
+
+### **6️⃣ Atualizando um Documento**
+```js
+Usuario.updateOne({ email: 'joao@email.com' }, { idade: 31 })
+  .then(() => console.log('Usuário atualizado!'))
+  .catch(err => console.error(err));
+```
+📌 Atualiza a **idade** do usuário cujo **email** é `'joao@email.com'`.
+
+---
+
+### **7️⃣ Removendo um Documento**
+```js
+Usuario.deleteOne({ email: 'joao@email.com' })
+  .then(() => console.log('Usuário removido!'))
+  .catch(err => console.error(err));
+```
+📌 Remove um usuário com base no **email**.
+
+---
+
+## 🔹 **Resumo**
+✔ **Mongoose** é uma biblioteca que facilita a interação entre **Node.js** e
+**MongoDB**. 
+ 
+✔ Usa **Schemas** para definir a estrutura dos dados. 
+
+✔ Permite **validações**, **consultas avançadas** e **middlewares**.  
+
+✔ Facilita operações como **inserção, busca, atualização e remoção** de 
+documentos.  
+
+No MongoDB, um Model (ou modelo) é uma representação de uma coleção no banco de dados. Ele define a estrutura dos documentos, as regras de validação e fornece métodos para interagir com os dados.
+
+No Mongoose, um Model é criado a partir de um Schema e serve como a interface principal para manipular documentos no MongoDB.
+
+🔹 O que um Model faz?
+✔ Define como os dados devem ser armazenados (tipos, validações, padrões).
+✔ Permite CRUD (Create, Read, Update, Delete) facilmente.
+✔ Atua como ponte entre o código JavaScript e o banco MongoDB.
+
+O QUE É CRON?
+
+O cron é um agendador de tarefas usado para executar comandos ou scripts automaticamente em horários programados. Ele é muito utilizado em sistemas Unix/Linux para automatizar processos recorrentes, como backups, limpeza de logs e envio de e-mails.
+
+🔹 Como o cron Funciona?
+O cron usa um arquivo chamado crontab (cron table) para armazenar as tarefas agendadas. Cada linha desse arquivo representa uma tarefa, especificando quando e o que deve ser executado.
+
+📌 Sintaxe básica do crontab:
+
+nginx
+Copy
+Edit
+MINUTO HORA DIA-MÊS MÊS DIA-SEMANA COMANDO
+MINUTO (0–59)
+HORA (0–23)
+DIA-MÊS (1–31)
+MÊS (1–12)
+DIA-SEMANA (0–6) (0 = Domingo, 6 = Sábado)
+COMANDO → O script ou comando a ser executado
+
+
+
+O QUE É O KNEX?
+
+O Knex.js é um query builder para Node.js que facilita a interação com bancos de 
+dados relacionais, como PostgreSQL, MySQL, SQLite, MariaDB, entre outros. Ele
+permite escrever consultas SQL de forma programática usando JavaScript,
+oferecendo mais flexibilidade e organização no código.
+
+🔹 Principais recursos do Knex.js:
+Compatível com vários bancos de dados relacionais.
+Suporte a migrations para versionamento do banco.
+Construção de queries dinâmicas e reutilizáveis.
+Transações para garantir a integridade dos dados.
+Suporte a Promises e async/await para facilitar a programação assíncrona.
+
+knex init - cria o arquivo de configuração do knex
+
+knex migrate:make create_table_users - comando para criar uma migration
+
+O QUE SÃO MIGRATIONS?
+
+Uma **migration** (ou **migração**) é um arquivo que define alterações na
+estrutura do banco de dados de forma programática, permitindo versionamento e
+controle das mudanças ao longo do tempo.  
+
+### 📌 **Para que servem as migrations?**
+- Criar, modificar ou excluir tabelas e colunas.
+
+- Garantir que diferentes ambientes (desenvolvimento, teste e produção) tenham
+a mesma estrutura de banco.
+
+- Reverter mudanças facilmente em caso de erro.
+
+- Facilitar a colaboração entre desenvolvedores.
+
+---
+
+### 🛠 **Exemplo de migration com Knex.js**
+
+#### 1️⃣ **Criando uma migration**
+Para gerar uma nova migration no Knex, execute:
+```sh
+npx knex migrate:make create_users_table
+```
+Isso cria um arquivo em `migrations/` com um nome parecido com:  
+📄 `20250130120000_create_users_table.js`
+
+#### 2️⃣ **Editando a migration**
+Abra o arquivo gerado e defina as mudanças:
+
+```js
+exports.up = function(knex) {
+  return knex.schema.createTable('users', function(table) {
+    table.increments('id'); // Chave primária autoincremento
+    table.string('name').notNullable();
+    table.string('email').unique().notNullable();
+    table.timestamp('created_at').defaultTo(knex.fn.now());
+  });
+};
+
+exports.down = function(knex) {
+  return knex.schema.dropTable('users');
+};
+```
+
+#### 3️⃣ **Rodando a migration**
+```sh
+knex migrate:latest
+```
+
+#### 4️⃣ **Revertendo uma migration**
+Se precisar desfazer a última migração:
+```sh
+knex migrate:rollback
+```
+
+---
+
+### 🚀 **Resumo**
+- `up`: Define como criar/modificar tabelas.
+- `down`: Define como reverter as mudanças.
+- `migrate:make`: Cria uma nova migration.
+- `migrate:latest`: Aplica todas as migrations pendentes.
+- `migrate:rollback`: Reverte a última migration.
+
+
+As migrations funcionam sobre o mesmo princípio do github, que é 
+de permitir o controle de versões, com a particularidade do controle
+versões feito pelas migrations ser de banco de dados.
+
+PARA QUE SERVEM AS TABELAS KNEX_MIGRATIONS E KNEX_LOCK_MIGRATIONS
+
+As tabelas `knex_migrations` e `knex_migrations_lock` são criadas automaticamente
+pelo **Knex.js** para gerenciar o estado das migrations. Elas ajudam a garantir
+que as migrações sejam aplicadas corretamente e sem conflitos.  
+
+---
+
+## 📌 **1. Tabela `knex_migrations`**  
+Essa tabela armazena um **histórico das migrations já executadas**.  
+
+🔹 **Colunas principais**:
+- `id`: Identificador único da migration.
+- `name`: Nome do arquivo da migration (ex: `20250130120000_create_users_table.js`).
+- `batch`: Número do lote da migration (migrations aplicadas juntas recebem o mesmo batch).
+- `migration_time`: Data e hora em que a migration foi aplicada.
+
+🔹 **Exemplo de conteúdo**:
+
+| id | name                                | batch | migration_time        |
+|----|-------------------------------------|-------|-----------------------|
+| 1  | 20250130120000_create_users_table  | 1     | 2025-01-30 12:00:00   |
+| 2  | 20250130123000_add_email_to_users  | 2     | 2025-01-30 12:30:00   |
+
+### **Como o Knex usa essa tabela?**
+- Antes de rodar uma migration, o Knex verifica se ela já foi executada.
+- Se já estiver listada, ele **pula** essa migration para evitar duplicações.
+- Se precisar **reverter** (`knex migrate:rollback`), ele remove a última batch
+de migrations.
+
+---
+
+## 📌 **2. Tabela `knex_migrations_lock`**  
+Essa tabela serve para **evitar que duas instâncias do Knex rodem migrations ao
+mesmo tempo**, o que poderia causar inconsistências.  
+
+🔹 **Colunas principais**:
+- `is_locked`: Indica se há um processo de migration em andamento.  
+  - `0`: Nenhum processo ativo (liberado para rodar migrations).
+  - `1`: Migration em andamento (impede execuções simultâneas).  
+
+🔹 **Exemplo de conteúdo**:
+
+| is_locked |
+|-----------|
+| 0         |
+
+### **Quando isso é útil?**
+- Em ambientes de produção, se duas instâncias do Node tentarem rodar `knex
+migrate:latest` ao mesmo tempo, isso poderia corromper o banco. O lock impede
+esse problema.
+
+- Se houver uma falha durante a execução de migrations e a flag `is_locked` não
+for resetada, pode ser necessário **resetar manualmente**:
+
+```sh
+UPDATE knex_migrations_lock SET is_locked = 0;
+```
+
+---
+
+## 🚀 **Resumo**
+| Tabela                   | Função |
+|--------------------------|------------------------------------------------|
+| **knex_migrations**      | Registra quais migrations já foram aplicadas. |
+| **knex_migrations_lock** | Evita que múltiplos processos rodem migrations ao mesmo tempo. |
+
+
+
