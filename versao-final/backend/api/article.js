@@ -48,6 +48,7 @@ module.exports = app => {
         }
     }
 
+    /* CÓDIGO 2 */
     const limit = 10 // usado para paginação
     const get = async (req, res) => {
         const page = req.query.page || 1

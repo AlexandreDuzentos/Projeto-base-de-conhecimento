@@ -84,9 +84,39 @@ const validateToken = (req, res) => {
         // problema com o token
         return res.send(false)
     }
-
 }
-    return {signin, validateToken}
+
+/* 
+  Método responsável por validar se um usuário que está no localstorage
+  é um administrador.
+ */
+const validateAdmin = async (req, res, next) => {
+    const user = req.body || null
+
+    try {
+       if(user){
+
+           const userData = await app.db("users")
+                          .where({email: user.email})
+                          .first()
+
+         if(userData){
+            if(req.body.admin && userData.admin){
+                return res.send(true)
+            } else {
+                return res.send(false)
+            }
+         } else {
+             throw new error("Usuário não encontrado!")
+         }
+         
+       }
+    } catch(msg){
+        return res.status(401).send(msg)
+    }
+}
+
+    return {signin, validateToken, validateAdmin}
 
 }
 

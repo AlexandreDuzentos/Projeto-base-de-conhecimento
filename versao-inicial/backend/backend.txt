@@ -324,7 +324,10 @@ de blacklist.
 Claro! Vamos simplificar com exemplos.  
 
 ### 📌 O que é Base64?
-O **Base64** é uma forma de codificar dados binários em texto, usando um conjunto de 64 caracteres seguros. Ele é útil quando queremos transmitir dados que podem conter caracteres especiais, como em URLs ou JSON Web Tokens (**JWTs**).
+O **Base64** é uma forma de codificar dados binários em texto, usando um
+conjunto de 64 caracteres seguros. Ele é útil quando queremos transmitir dados
+que podem conter caracteres especiais, como em URLs ou JSON Web Tokens
+(**JWTs**).
 
 #### 🔹 Exemplo de codificação Base64:
 Se tivermos o texto **"Olá, JWT!"**, ao codificá-lo em **Base64**, ele se torna:

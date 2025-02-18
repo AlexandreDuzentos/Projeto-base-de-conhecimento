@@ -44,7 +44,7 @@ function passport1(app){
      /*
       o primeiro parâmetro da função authenticate é a estratégia que será
       usada, que no caso é a jwt, e o segundo indicará se eu terei algum tipo
-      de controle associado a essa autenticação.
+      de controle de sessão associado a essa autenticação.
       */
       authenticate: () => passport.authenticate('jwt' , {session: false })
    }

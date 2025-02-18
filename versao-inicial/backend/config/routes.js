@@ -15,6 +15,7 @@ module.exports = app => {
     app.post("/signup", user.saveOrUpdate) // cadastro
     app.post("/signin", auth.signin) // login
     app.post("/validateToken", auth.validateToken)
+    app.post("/validateAdmin", auth.validateAdmin)
 
     /* Rotas user  */
     /*
@@ -59,7 +60,9 @@ module.exports = app => {
     app.delete("/articles/:id", admin(article.remove))
 
     app.all("/category/:id/articles", passport.authenticate())
-    app.get("/category/:id/articles", article.getByCategory) // essa listagem de artigos é para usuários comuns
+
+    /* Rota responsável por trazer os artigos pelo id da categoria */
+    app.get("/categories/:id/articles", article.getByCategory) // essa listagem de artigos é para usuários comuns
 
     /* Rotas estatísticas */
     app.all("/stats", passport.authenticate())

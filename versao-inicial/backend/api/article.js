@@ -50,9 +50,10 @@ function article(app){
             }
          }
 
+         /* CÓDIGO 1 */
          const limit = 10 // limite de registros por página
          const listAll = async (req, res) => {
-              let page = req.params.id | 1 // página atual
+              let page = req.query.page || 1 // página atual
 
               /* Buscando a quantidade de articles presentes no banco */
               let result = await app.db("articles").count("id").first()
@@ -60,9 +61,9 @@ function article(app){
 
               app.db("articles")
                  .select("id", "name", "description")
-                 .limit(10).offset(page * limit - limit) // lógica da paginação
+                 .limit(limit).offset(page * limit - limit) // lógica da paginação
                  .then(articles => res.json({data: articles, count, limit}))
-                 .catch(error => res.status(500).send(`<h1>${error}</h1>`))
+                 .catch(error => res.status(500).send(error))
          }
 
          const getById = (req, res) => {

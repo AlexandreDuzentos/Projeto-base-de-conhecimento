@@ -3,7 +3,18 @@ const {existsOrError, notExistsOrError, isValidId} = require("./validation")()
 function category(app){
       
     const saveOrUpdate = (req, res) => {
-          const category = {...req.body}
+          /* 
+          Escolher a dedo os campos de desejo que estejam no objeto
+          category é mais seguro do que simplesmente clonar todo o objeto
+          presente em req.body para category, eu consigo ter um controle maior
+          sobre os campos.
+           */
+          const category = {
+            id: req.body.id,
+            name: req.body.name,
+            parentId: req.body.parentId
+          }
+
           if(req.params.id) category.id = req.params.id
 
           try {
@@ -93,9 +104,13 @@ function category(app){
 
     
     const withPath = categories => {
-      /* Função responsável por obter uma categória pai */
+      /* Função responsável por obter uma categoria pai */
       const getParent = (categories, parentId) => {
-          /* As categories que atenderem a condição serão retornadas para variável parent */
+          /*
+            As categories que atenderem a condição serão retornadas para variável parent,
+            testando se uma chave primária de uma categoria bate com a chave estrangeira de outra,
+            se isso for verdadade, então achamos a categoria pai.
+           */
           const parent = categories.filter(category => category.id === parentId)
           return parent.length ? parent[0] : null
       } 

@@ -64,7 +64,7 @@ function user(app){
 
        if(user.id){
            // update
-           app.db()
+           app.db("users")
               .update(user)
               .where({id: user.id})
               .whereNull('deletedAt') // isso é para impedir de atualizar um usuário que "não existe" na tabela

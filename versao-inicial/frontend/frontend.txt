@@ -1,0 +1,842 @@
+Comunicação entre componentes
+
+Eu estou num componente que é o header e quero que quando eu clicar num botão
+dentro dele, um outro componente desapareça(menu), ou seja, eu quero ter acesso
+a um componente(menu) a partir de outro(header), então eu tenho a necessidade
+de disparar um evento num componente(header) que não tem relação com outro
+componente(menu) que eu quero que seja afetado pelo disparo do evento. Para
+resolver isso precisaremos encontrar um forma de ter os dados dos componentes
+de forma centralizada, ou seja, um ponto onde todos os componentes conseguem
+acessar os dados ou estados uns dos outros, para isso, nós vamos usar o vuex, que é uma área
+de armazenamento de dados dos componentes que é compartilhada entre eles.
+
+Todos os componentes têm seu estado, e ele é local, ou seja, acessível apenas
+pelo próprio componente, e eventualmente a partir de um componente você quer
+manipular o estado de outro, você pode querer que a partir de uma ação num
+componente um efeito seja gerado noutro componente.
+
+A partir de um componente pai eu posso passar propriedades para um componente
+filho e mudar eu estado, mas em cenários em que não há uma relação de pai para
+filho isso não é possível de forma nativa pelo vueJS.
+
+
+O QUE É O VUEX?
+
+O Vuex é uma biblioteca de gerenciamento de estado para aplicações desenvolvidas
+com o Vue.js, um dos frameworks JavaScript mais populares para construção de
+interfaces de usuário. Ele serve para gerenciar o estado da aplicação de forma
+centralizada, facilitando a comunicação entre os componentes e evitando o
+chamado "prop drilling" (passar dados através de várias camadas de componentes).
+
+
+Em uma aplicação Vue, os componentes geralmente possuem dados locais (o *state*)
+e, quando a aplicação cresce, torna-se mais difícil gerenciar o estado
+compartilhado entre diversos componentes. O Vuex resolve isso criando um único
+repositório (ou *store*) de estado, onde todos os dados podem ser armazenados e
+acessados de forma previsível e reativa.
+
+Os principais conceitos do Vuex são:
+
+1. **State**: Onde ficam armazenados os dados da aplicação.
+2. **Getters**: Funções que permitem acessar e manipular o estado de maneira
+mais conveniente.
+
+3. **Mutations**: São responsáveis por alterar o estado da aplicação. As
+mutations são síncronas e sempre devem ser usadas para modificar o estado.
+
+4. **Actions**: Similar às mutations, mas podem ser assíncronas. Elas podem
+chamar APIs ou realizar outras operações assíncronas antes de commitar uma
+mutation.
+
+5. **Modules**: Permite dividir o Vuex em módulos, facilitando o gerenciamento
+de grandes aplicações, mantendo cada parte do estado organizada e independente.
+
+O Vuex é bastante útil em aplicações grandes, onde há a necessidade de
+centralizar o gerenciamento de estado, tornando o fluxo de dados mais claro e
+controlado.
+
+
+O QUE É O AXIOS?
+
+O **Axios** é uma biblioteca JavaScript usada para fazer requisições HTTP, tanto no navegador quanto no Node.js. Ele facilita a comunicação com APIs RESTful, permitindo enviar e receber dados de forma assíncrona.
+
+### Principais recursos do Axios:
+- Suporte a **promises** e **async/await**
+- Interceptores de requisição e resposta
+- Cancelamento de requisições
+- Conversão automática de resposta JSON
+- Suporte a **timeout**
+- Suporte a **solicitações com autenticação (headers personalizados, tokens, etc.)**
+- Funciona tanto no navegador quanto no **Node.js**
+
+### Exemplo de uso:
+Fazendo uma requisição GET:
+```javascript
+import axios from 'axios';
+
+axios.get('https://api.exemplo.com/dados')
+  .then(response => {
+    console.log(response.data);
+  })
+  .catch(error => {
+    console.error('Erro na requisição:', error);
+  });
+```
+
+Fazendo uma requisição POST:
+```javascript
+axios.post('https://api.exemplo.com/dados', {
+  nome: 'João',
+  idade: 30
+})
+.then(response => {
+  console.log('Dados enviados:', response.data);
+})
+.catch(error => {
+  console.error('Erro:', error);
+});
+```
+
+O QUE É O BOOTSTRAP-VUE?
+
+O **Bootstrap-Vue** é um framework baseado no **Bootstrap 4** que permite usar
+componentes prontos no **Vue.js**. Ele facilita a criação de interfaces
+responsivas e estilos modernos sem precisar escrever muito CSS ou HTML
+manualmente.
+
+### **Principais recursos do Bootstrap-Vue**:
+✅ **Componentes prontos** – Botões, cards, modais, tabelas, alertas, etc.  
+✅ **Sistema de Grid** – Layout responsivo com a estrutura do Bootstrap.  
+✅ **Diretivas do Vue** – Suporte a `v-model`, eventos e bindings nativos do Vue.  
+✅ **Customização** – Permite temas personalizados e integração com SCSS.  
+✅ **Sem dependência de jQuery** – Usa apenas Vue e Bootstrap CSS.  
+
+---
+
+### **Exemplo de Uso**
+#### **Instalação**
+Se estiver usando Vue 2:
+```sh
+npm install bootstrap-vue
+```
+
+Se estiver usando Vue 3 (versão alternativa, BootstrapVue Next):
+```sh
+npm install bootstrap bootstrap-vue-next
+```
+
+#### **Configuração (Vue 2)**
+No `main.js`:
+```javascript
+import Vue from 'vue';
+import BootstrapVue from 'bootstrap-vue';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue/dist/bootstrap-vue.css';
+
+Vue.use(BootstrapVue);
+
+new Vue({
+  render: h => h(App),
+}).$mount('#app');
+```
+
+#### **Exemplo de Componente**
+```vue
+<template>
+  <div>
+    <b-button variant="primary" @click="showAlert">Clique Aqui</b-button>
+    <b-alert show variant="success" v-if="alertVisible">Ação realizada com sucesso!</b-alert>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return { alertVisible: false };
+  },
+  methods: {
+    showAlert() {
+      this.alertVisible = true;
+    }
+  }
+};
+</script>
+```
+
+---
+
+### **Situação Atual do Bootstrap-Vue**
+O projeto **não tem suporte oficial para Vue 3**, e a equipe do Bootstrap-Vue
+não está mais mantendo ativamente a biblioteca. Para Vue 3, recomenda-se usar
+alternativas como:
+- [BootstrapVue Next](https://github.com/bootstrap-vue/bootstrap-vue-next) (não oficial, mas funcional)
+- [PrimeVue](https://www.primefaces.org/primevue/) (mais completo e moderno)
+- [Quasar Framework](https://quasar.dev/) (também baseado em Vue e muito poderoso)
+
+
+O QUE É O HIGHLIGHTJS?
+
+O **highlight.js** é uma biblioteca de JavaScript usada para **destacar sintaxe
+de código** em páginas da web. Ele detecta automaticamente a linguagem do código
+e aplica estilos coloridos para melhorar a leitura.
+
+---
+
+### **Principais recursos do highlight.js**:
+✅ **Detecção automática da linguagem**  
+✅ **Suporte a mais de 180 linguagens de programação**  
+✅ **Mais de 90 temas de estilização**  
+✅ **Funciona no navegador e no Node.js**  
+✅ **Leve e fácil de integrar**  
+
+---
+
+### **Exemplo de uso no navegador**
+1️⃣ Instale via CDN (sem necessidade de configuração):
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+```
+
+2️⃣ No HTML, use a tag `<pre><code>` e adicione a classe da linguagem:
+```html
+<pre><code class="language-javascript">
+const nome = "João";
+console.log(`Olá, ${nome}!`);
+</code></pre>
+```
+
+Isso automaticamente aplicará a formatação com cores.
+
+---
+
+### **Exemplo com Vue.js**
+Se estiver usando Vue, pode instalar via NPM:
+```sh
+npm install highlight.js
+```
+E configurar no componente:
+```vue
+<template>
+  <pre><code ref="codeBlock" class="language-java">{{ code }}</code></pre>
+</template>
+
+<script>
+import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-dark.css';
+
+export default {
+  data() {
+    return { code: 'public class Hello { public static void main(String[] args) { System.out.println("Hello, World!"); } }' };
+  },
+  mounted() {
+    hljs.highlightElement(this.$refs.codeBlock);
+  }
+};
+</script>
+```
+
+---
+
+### **Alternativas ao highlight.js**
+- **Prism.js** – Mais leve e personalizável.  
+- **Shiki** – Melhor para SSR e suporte a temas VS Code.  
+- **CodeMirror** – Mais usado para editores de código interativos.  
+
+
+O QUE É O LIQUOR-TREE?
+
+O **liquor-tree** é uma biblioteca para Vue.js que permite criar e gerenciar
+**árvores interativas** de forma fácil e eficiente. Ela é útil para representar
+**hierarquias de dados**, como diretórios, categorias, menus e estrutura de
+documentos.
+
+---
+
+### **Principais Recursos do liquor-tree**:
+✅ **Renderização eficiente** – Suporta grandes conjuntos de dados.  
+✅ **Eventos e interatividade** – Permite selecionar, expandir e editar nós.  
+✅ **Suporte a ícones personalizados** – Permite personalizar os nós com ícones
+e estilos.  
+✅ **Modo de arrastar e soltar** – Facilita reorganizar os nós.  
+✅ **Funciona com Vue 2 e Vue 3** – Adaptável a projetos modernos.  
+
+---
+
+### **Instalação**
+Para Vue 2:
+```sh
+npm install liquor-tree
+```
+
+Para Vue 3:
+```sh
+npm install liquor-tree@next
+```
+
+---
+
+### **Exemplo de Uso**
+```vue
+<template>
+  <tree :data="treeData" @nodeclick="onNodeClick" />
+</template>
+
+<script>
+import { Tree } from 'liquor-tree';
+import 'liquor-tree/dist/liquor-tree.css';
+
+export default {
+  components: { Tree },
+  data() {
+    return {
+      treeData: [
+        { text: 'Pasta 1', children: [{ text: 'Arquivo 1.1' }, { text: 'Arquivo 1.2' }] },
+        { text: 'Pasta 2', children: [{ text: 'Arquivo 2.1' }] }
+      ]
+    };
+  },
+  methods: {
+    onNodeClick(node) {
+      console.log('Nó clicado:', node.text);
+    }
+  }
+};
+</script>
+```
+
+---
+
+### **Casos de Uso**
+📂 Exploradores de arquivos  
+📁 Estruturas de categorias ou taxonomias  
+📜 Exibição de árvores genealógicas ou organogramas  
+🗄️ Menus aninhados  
+
+
+O QUE É O VUE-GRAVATAR?
+
+O **vue-gravatar** é uma biblioteca para Vue.js que permite exibir **avatares
+do Gravatar** facilmente. Ele gera a URL do Gravatar a partir de um e-mail e
+exibe a imagem correspondente.  
+
+---
+
+### **Principais Recursos do vue-gravatar**:  
+✅ **Geração automática do avatar** com base no e-mail  
+✅ **Personalização de tamanho e estilo**  
+✅ **Suporte a fallback (imagem padrão caso não exista Gravatar)**  
+✅ **Fácil de usar com Vue.js**  
+
+---
+
+### **Instalação**  
+```sh
+npm install vue-gravatar
+```
+
+Ou via CDN (Vue 2):  
+```html
+<script src="https://unpkg.com/vue-gravatar@latest/dist/vue-gravatar.js"></script>
+```
+
+---
+
+### **Exemplo de Uso no Vue 2 ou Vue 3**  
+```vue
+<template>
+  <div>
+    <vue-gravatar :email="email" :size="100" default="identicon" class="rounded" />
+  </div>
+</template>
+
+<script>
+import VueGravatar from 'vue-gravatar';
+
+export default {
+  components: { VueGravatar },
+  data() {
+    return {
+      email: "exemplo@email.com"
+    };
+  }
+};
+</script>
+```
+
+---
+
+### **Parâmetros Úteis**
+- `email` → O e-mail do usuário  
+- `size` → Tamanho do avatar (padrão: 80px)  
+- `default` → Define uma imagem caso o usuário não tenha Gravatar (exemplos: `identicon`, `monsterid`, `retro`, `wavatar`)  
+
+---
+
+### **Alternativas ao vue-gravatar**
+- **Gerar manualmente a URL do Gravatar**  
+  ```html
+  <img :src="`https://www.gravatar.com/avatar/${md5(email)}`" />
+  ```
+- **Librarias como `vue-avatar`** (suporte a mais opções de personalização)  
+
+
+O **vue-mq** é uma biblioteca para Vue.js que permite **trabalhar com media queries responsivas** de forma declarativa. Com ele, você pode definir **breakpoints** e **exibir ou ocultar componentes** com base no tamanho da tela, sem precisar escrever CSS manualmente.  
+
+---
+
+### **Principais Recursos do vue-mq**  
+✅ **Gerenciamento simples de media queries** no Vue.js  
+✅ **Breakpoints personalizados**  
+✅ **Facilidade de uso com diretivas (`v-mq`) ou computed properties**  
+✅ **Funciona no Vue 2 e possui alternativas para Vue 3**  
+
+---
+
+### **Instalação**  
+Se estiver usando Vue 2:  
+```sh
+npm install vue-mq
+```
+
+---
+
+### **Configuração no Vue 2 (`main.js`)**
+```javascript
+import Vue from "vue";
+import VueMq from "vue-mq";
+
+Vue.use(VueMq, {
+  breakpoints: {
+    mobile: 600,
+    tablet: 1024,
+    desktop: Infinity,
+  }
+});
+```
+
+---
+
+### **Exemplo de Uso**  
+Você pode **exibir componentes diferentes** dependendo do tamanho da tela:  
+
+```vue
+<template>
+  <div>
+    <p v-mq="['mobile', 'tablet']">Estou visível apenas em dispositivos móveis e tablets!</p>
+    <p v-mq="['desktop']">Estou visível apenas em desktops!</p>
+  </div>
+</template>
+```
+
+Ou usar em **JavaScript (computed property)**:  
+```vue
+<template>
+  <h1 v-if="$mq === 'mobile'">Modo Mobile</h1>
+  <h1 v-else>Modo Desktop</h1>
+</template>
+```
+
+---
+
+
+O QUE É O VUE-ROUTER?
+
+O Vue Router é a biblioteca oficial de roteamento para o Vue.js, permitindo
+criar Single Page Applications (SPAs) com navegação dinâmica entre páginas sem
+precisar recarregar a página inteira.
+
+Principais Recursos do Vue Router
+✅ Definição de rotas declarativas
+✅ Suporte a parâmetros e query strings
+✅ Rotas aninhadas (sub-rotas)
+✅ Lazy loading (carregamento dinâmico de componentes)
+✅ Proteção de rotas (navigation guards)
+✅ Histórico do navegador (mode: history ou hash)
+
+
+O QUE É O VUE-TOASTED?
+
+O **vue-toasted** é uma biblioteca para Vue.js que permite exibir
+**notificações toast** de forma simples e personalizável. Essas notificações
+são pequenas mensagens temporárias que aparecem na tela para informar o usuário
+sobre alguma ação, como um sucesso, erro ou aviso.  
+
+---
+
+### **Principais Recursos do vue-toasted**  
+✅ **Fácil de usar e configurar**  
+✅ **Suporte a temas e animações**  
+✅ **Vários tipos de notificações (sucesso, erro, aviso, etc.)**  
+✅ **Personalização de tempo de exibição e posição na tela**  
+✅ **Funciona com Vue 2 (não tem suporte oficial para Vue 3)**  
+
+---
+
+### **Instalação**  
+```sh
+npm install vue-toasted
+```
+
+---
+
+### **Configuração (Vue 2)**
+No `main.js`:  
+```javascript
+import Vue from 'vue';
+import Toasted from 'vue-toasted';
+
+Vue.use(Toasted, {
+  duration: 3000, // Tempo padrão de exibição (3s)
+  position: 'top-right', // Posição na tela
+  theme: 'bubble' // Estilo
+});
+```
+
+---
+
+### **Exemplo de Uso**  
+Dentro de um componente Vue:  
+```vue
+<template>
+  <button @click="mostrarToast">Mostrar Toast</button>
+</template>
+
+<script>
+export default {
+  methods: {
+    mostrarToast() {
+      this.$toasted.show('Mensagem enviada com sucesso!', {
+        type: 'success'
+      });
+    }
+  }
+};
+</script>
+```
+
+### **Tipos de Notificações**  
+```javascript
+this.$toasted.success('Operação realizada com sucesso!');
+this.$toasted.error('Erro ao processar a solicitação!');
+this.$toasted.show('Este é um aviso!', { type: 'info' });
+```
+
+---
+
+
+OQUE É O VUE2-EDITOR?
+
+O **vue2-editor** é um editor de texto **WYSIWYG
+(What You See Is What You Get)** para Vue.js 2, baseado no **Quill.js**.
+Ele permite que os usuários criem e editem conteúdo formatado, como em editores
+de texto comuns, sem precisar escrever HTML diretamente.  
+
+---
+
+### **Principais Recursos do vue2-editor**  
+✅ **Baseado no Quill.js**, um dos editores mais populares  
+✅ **Suporte a formatação de texto (negrito, itálico, sublinhado, etc.)**  
+✅ **Inserção de imagens e links**  
+✅ **Personalização da barra de ferramentas**  
+✅ **Fácil integração com formulários Vue**  
+
+---
+
+### **Instalação**  
+```sh
+npm install vue2-editor
+```
+
+---
+
+### **Exemplo de Uso**  
+```vue
+<template>
+  <div>
+    <vue-editor v-model="conteudo" />
+    <p>Texto digitado:</p>
+    <div v-html="conteudo"></div>
+  </div>
+</template>
+
+<script>
+import { VueEditor } from "vue2-editor";
+
+export default {
+  components: { VueEditor },
+  data() {
+    return {
+      conteudo: "<p>Olá, mundo!</p>"
+    };
+  }
+};
+</script>
+```
+
+---
+
+### **Personalização da Barra de Ferramentas**  
+Você pode definir quais botões aparecem no editor:  
+```vue
+<vue-editor v-model="conteudo" :editor-toolbar="toolbarOptions" />
+
+data() {
+  return {
+    toolbarOptions: [
+      ['bold', 'italic', 'underline'], // Botões de formatação
+      [{ list: 'ordered' }, { list: 'bullet' }], // Listas
+      ['link', 'image'] // Inserção de links e imagens
+    ]
+  };
+}
+```
+
+---
+
+### **Alternativas para Vue 3**  
+O `vue2-editor` **não suporta Vue 3**. Para Vue 3, você pode usar:  
+- **[Quill.js](https://quilljs.com/)** diretamente  
+- **[vue-quill](https://vueup.github.io/vue-quill/)** (para Vue 3)  
+- **[TipTap](https://tiptap.dev/)** (mais avançado e moderno)  
+
+
+PROPRIEDADE TRANSITION NO CSS
+
+A propriedade transition no CSS é usada para definir animações suaves entre os
+valores de estilo de um elemento quando ele muda de estado. No seu caso, o
+valor:
+
+transition: visibility 0.5s, opacity 0.5s linear;
+Indica que duas propriedades do elemento vão sofrer transições quando
+alteradas: visibility e opacity.
+
+visibility 0.5s: Faz com que a visibilidade do elemento mude de forma suave em
+0.5 segundos.
+
+opacity 0.5s linear: Faz com que a opacidade do elemento mude também em 0.5
+segundos, mas com um comportamento linear (isto é, a mudança de opacidade será
+constante durante toda a transição, sem acelerações ou desacelerações).
+
+Detalhes:
+visibility: Determina se o elemento é visível ou não. Quando configurado para
+hidden, o elemento ainda ocupa o espaço na página, mas não é visível. A
+transição na visibility pode ser útil para criar efeitos de "desaparecimento",
+sem que o layout da página seja afetado.
+
+opacity: Controla a transparência do elemento. Vai de 0 (totalmente
+transparente) a 1 (totalmente opaco). A transição de opacidade é frequentemente
+usada para criar efeitos de fade-in ou fade-out.
+
+O que acontece na prática?
+Quando o estado do elemento muda (por exemplo, de opacity: 0 para opacity: 1),
+a transição acontecerá durante 0.5 segundos.
+
+Se a visibilidade mudar (de hidden para visible), também ocorrerá uma transição
+suave de 0.5 segundos.
+
+Note que a transição de visibility sozinha não causa um efeito visual muito
+marcante, pois a mudança de visibilidade não afeta a renderização imediata do
+elemento (ele vai desaparecer, mas ocupará o mesmo espaço). A transição de
+opacity cria o efeito de suavizar a mudança de visibilidade.
+
+
+VUEROUTER
+
+No Vue Router, o **mode** define como as URLs são gerenciadas na aplicação. Ele pode ser configurado como `"hash"`, `"history"` ou `"abstract"`, e cada um funciona de maneira diferente:
+
+### 1. **`mode: 'hash'` (Padrão)**
+   - Utiliza um `#` na URL, como `https://example.com/#/home`.
+   - Fácil de configurar e funciona em todos os navegadores sem necessidade de configurações extras no servidor.
+   - O fragmento `#` impede que o navegador faça uma nova requisição ao servidor.
+
+   **Exemplo de configuração:**
+   ```javascript
+   const router = new VueRouter({
+     mode: 'hash', // Padrão
+     routes: [...]
+   });
+   ```
+
+### 2. **`mode: 'history'` (Sem Hash)**
+   - Usa a API **History** do navegador para modificar a URL sem recarregar a página.
+   - URLs ficam limpas, como `https://example.com/home` (sem `#`).
+   - Requer configuração no servidor para redirecionar todas as requisições para `index.html`, evitando erros 404.
+
+   **Exemplo de configuração:**
+   ```javascript
+   const router = new VueRouter({
+     mode: 'history',
+     routes: [...]
+   });
+   ```
+
+   **Configuração no servidor (Exemplo para Apache)**
+   Se usar `history mode`, você precisa configurar o servidor para redirecionar todas as rotas para `index.html`. Exemplo no `.htaccess`:
+   ```
+   <IfModule mod_rewrite.c>
+     RewriteEngine On
+     RewriteBase /
+     RewriteRule ^index\.html$ - [L]
+     RewriteCond %{REQUEST_FILENAME} !-f
+     RewriteCond %{REQUEST_FILENAME} !-d
+     RewriteRule . /index.html [L]
+   </IfModule>
+   ```
+
+### 3. **`mode: 'abstract'` (Modo Virtual)**
+   - Usado principalmente em ambientes sem um histórico real, como testes unitários ou aplicações que não rodam no navegador.
+   - Não afeta a URL visível.
+
+   **Exemplo de configuração:**
+   ```javascript
+   const router = new VueRouter({
+     mode: 'abstract',
+     routes: [...]
+   });
+   ```
+
+### Quando usar cada modo?
+| Modo       | Quando Usar |
+|------------|------------|
+| `hash`     | Quando você não quer configurar o servidor e precisa de compatibilidade total. |
+| `history`  | Quando deseja URLs limpas e pode configurar o servidor para evitar erros 404. |
+| `abstract` | Quando está em um ambiente sem um histórico real, como testes unitários. |
+
+O QUE É LOCALSTORAGE?
+
+O **localStorage** é uma forma de armazenamento de dados no navegador web. Ele
+permite que você armazene dados localmente no computador do usuário de forma
+persistente, ou seja, os dados ficam salvos mesmo quando a página é recarregada
+ou quando o navegador é fechado e reaberto. 
+
+Esse armazenamento é feito no **lado do cliente**, ou seja, no próprio
+navegador, e pode ser acessado via JavaScript.
+
+Algumas características do **localStorage**:
+
+1. **Persistência**: Os dados não têm prazo de validade, ou seja, ficam
+armazenados até que o usuário os remova manualmente ou até que o desenvolvedor
+faça alguma ação para apagá-los.
+   
+2. **Capacidade**: O localStorage oferece uma quantidade maior de espaço de
+armazenamento em comparação com os cookies (geralmente 5MB ou mais, dependendo
+do navegador).
+
+3. **Chave-Valor**: Os dados são armazenados no formato de chave e valor (key-value pairs), onde você armazena e recupera os dados com uma chave única. Exemplo:
+   - **Armazenar**: `localStorage.setItem('nome', 'João')`
+   - **Recuperar**: `localStorage.getItem('nome')` // Retorna 'João'
+
+4. **Somente no navegador**: O localStorage é exclusivo para o navegador e não é
+compartilhado entre diferentes navegadores ou dispositivos.
+
+Exemplo de uso:
+
+```javascript
+// Armazenando dados
+localStorage.setItem('username', 'joao123');
+
+// Recuperando dados
+let username = localStorage.getItem('username');
+console.log(username); // Output: joao123
+
+// Removendo dados
+localStorage.removeItem('username');
+
+// Limpando todo o armazenamento local
+localStorage.clear();
+```
+
+A principal vantagem do **localStorage** é a possibilidade de manter dados
+entre sessões de navegação, sem precisar de uma conexão com o servidor para
+isso. Ele é muito utilizado para salvar configurações do usuário, carrinhos de
+compras, preferências e outras informações que devem persistir entre diferentes
+visitas ao site.
+
+
+O QUE É O HIGHLIGHTJS
+
+A **Highlight.js** é uma biblioteca JavaScript que facilita a realce de sintaxe em códigos de programação em páginas web. Ela é usada para destacar a sintaxe de código de uma forma visualmente atraente, tornando o código mais legível e fácil de entender.
+
+### Características principais:
+1. **Suporte a várias linguagens**: O Highlight.js suporta mais de 189 linguagens de programação, incluindo JavaScript, Python, Ruby, HTML, CSS, C++, Java, e muito mais.
+2. **Autodetecção de linguagem**: Ele pode detectar automaticamente a linguagem de programação utilizada no código. Você não precisa informar a linguagem explicitamente.
+3. **Temas personalizáveis**: A biblioteca oferece diversos temas de cores para realçar o código, e você pode escolher aquele que se encaixa melhor no design do seu site.
+4. **Fácil de integrar**: A integração é simples, bastando incluir o arquivo CSS e o script JavaScript no seu projeto. Pode ser utilizada tanto no lado cliente (browser) quanto no servidor (Node.js).
+
+### Como usar:
+
+#### 1. Instalar via CDN
+Você pode adicionar diretamente os arquivos CSS e JavaScript no seu HTML:
+
+```html
+<!-- Adicionar o CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+
+<!-- Adicionar o JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+
+<!-- Inicializar o Highlight.js -->
+<script>hljs.highlightAll();</script>
+```
+
+#### 2. Usando com código HTML:
+Dentro do seu HTML, você pode envolver o código em uma tag `<pre><code>` e especificar a linguagem, se necessário:
+
+```html
+<pre><code class="html">
+  <!-- Seu código HTML aqui -->
+  <h1>Olá, Mundo!</h1>
+</code></pre>
+
+<pre><code class="javascript">
+  // Seu código JavaScript aqui
+  console.log("Hello, World!");
+</code></pre>
+```
+
+### 3. Usando a detecção automática de linguagem (sem especificar a classe):
+
+Se você não quiser especificar a classe com a linguagem, o Highlight.js pode detectar automaticamente a linguagem com base no conteúdo do código:
+
+```html
+<pre><code>
+  function ola() {
+    console.log("Olá, Mundo!");
+  }
+</code></pre>
+```
+
+#### 4. Usando com Node.js
+Se você estiver usando Node.js, pode instalar o Highlight.js via npm:
+
+```bash
+npm install highlight.js
+```
+
+E no seu código JavaScript:
+
+```javascript
+const hljs = require('highlight.js');
+const code = 'const hello = "world";';
+const highlightedCode = hljs.highlightAuto(code).value;
+console.log(highlightedCode);
+```
+
+### 5. Personalizando o Tema:
+Existem vários temas disponíveis, como:
+
+- **default**
+- **monokai**
+- **github**
+- **atom-one-dark**
+
+Você pode incluir o tema desejado da mesma maneira que os exemplos anteriores, trocando o link do CSS para o tema escolhido. Por exemplo:
+
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai.min.css">
+```
+
+### Conclusão:
+O **Highlight.js** é uma ferramenta prática e simples para realçar a sintaxe de código em páginas web. Ele suporta uma grande variedade de linguagens de programação e é fácil de integrar, o que o torna muito popular em blogs, sites de tutoriais e outros tipos de sites que exibem código.
