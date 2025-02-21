@@ -43,6 +43,8 @@
           </b-button>
         </template>
      </b-table>
+     <b-pagination size="md" v-model="page"
+      :total-rows="count" :per-page="limit" />
    </div>
 </template>
 
@@ -57,6 +59,9 @@
            mode: 'save',
            category: {},
            categories: [],
+           page: 1,
+           count: 0,
+           limit: 0,
            fields: [
               {key: 'id', label: "Código", sortable: true},
               {key: 'name', label: "Nome", sortable: true},
@@ -68,9 +73,11 @@
 
      methods: {
       loadCategories(){
-         const url = `${baseApiUrl}/categories`
-         axios.get(url).then(res => {   
+         const url = `${baseApiUrl}/categories?page=${this.page}`
+         axios.get(url).then(res => {  
              this.categories = res.data.map(category => {
+                this.count = category.count
+                this.limit = category.limit
                 /*
                  Os atributos value e text serão usados pelo select para
                  renderizar seus elementos, sendo que o texto renderizado
@@ -80,9 +87,8 @@
                  */
                 return {...category, value: category.id, text: category.path}
              })
-             console.log(this.categories)
-             return
-         })
+
+         }).catch(error => console.log("Erro"))
      },
      reset(){
          this.mode = "save"
@@ -110,7 +116,16 @@
       loadCategory(category, mode = 'save'){
          this.mode = mode
          this.category = { ...category }
-         console.log(this.category)
+      }
+     },
+
+     /*
+      Função responsável por monitorar o status de um atributo
+      do estado do meu componente.
+      */
+     watch: {
+      page(){
+         this.loadCategories()
       }
      },
      mounted(){

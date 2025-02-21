@@ -81,11 +81,18 @@ function user(app){
 
     
     /* Método listAll  */
-    const listAll = (req, res) => {
+    const limit = 10
+    const listAll = async (req, res) => {
+       const page = req.query.page || 1
+
+       const result = await app.db("users").count("email").first()
+       const count = parseInt(result.count)
+    
        app.db("users")
           .select("id", "name", "email", "admin")
+          .limit(limit).offset(page * limit - limit)
           .whereNull('deletedAt') // isso é para impedir de listar um usuário que "não existe" no frontend
-          .then(users => res.json(users))
+          .then(users => res.json({data: users, count: count, limit: limit}))
           .catch(error => res.status(500).send(`<h1>${error}</h1>`))
     }
 

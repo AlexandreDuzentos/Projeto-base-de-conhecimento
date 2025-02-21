@@ -116,39 +116,47 @@ function category(app){
       } 
       
       /* Função responsável por adicionar o atributo path aos objetos category */
-      const categoriesWithPath = categories.map(category => {
+      const categoriesWithPath = categories.data.map(category => {
           let path = category.name
+          const count = categories.count
+          const limit = categories.limit
           /* 
              Produto cartesiano + restrição de chaves correspondentes(chave primária e estrangeira)
              select parentCategory.name, childCategory.name from categories as childCategory inner join categories as parentCategory on childCategory.id =
              parentCategory.parentId
           */
-          let parent = getParent(categories, category.parentId)  
+          let parent = getParent(categories.data, category.parentId)  
       
           while(parent){
               path = `${parent.name} > ${path}`
-              parent = getParent(categories, parent.parentId)
+              parent = getParent(categories.data, parent.parentId)
           }
       
-          return {...category, path}
+          return {...category, path, count, limit}
       })
   
       /* Fazendo a ordenação pelo atributo path */
       categoriesWithPath.sort((catA, catB) => {
           if(catA.path < catB.path) return -1 // -1 indica que catA deve vir antes de catB
-          if(catA.apth > catB.path) return  1 // 1 indica que catA deve vir depois de catB
+          if(catA.path > catB.path) return  1 // 1 indica que catA deve vir depois de catB
           return 0 // 0 indica de que catA e catB são iguais
       })
 
-  
       return categoriesWithPath
   }
 
    /* Método responsável por listar categorias */
-   const listAll = (req, res) => {
+   const limit = 10
+   const listAll = async (req, res) => {
+    const page = req.query.page || 1
+
+    const result = await app.db("categories").count("id").first()
+    const count = parseInt(result.count)
+
     app.db("categories")
-       .then(categories => res.json(withPath(categories)))
-       .catch(error => res.status(500).send(`<h1>${error}</h1>`))
+       .limit(limit).offset(page * limit - limit)
+       .then(categories => res.json(withPath({data: categories, count: count, limit: limit})))
+       .catch(error => res.status(500).send(`<h1>Aqui: ${error}</h1>`))
     }
   
   /* Função responsável por buscar uma categoria pelo id */

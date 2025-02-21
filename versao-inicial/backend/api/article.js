@@ -94,7 +94,7 @@ function article(app){
              /* Setando um alias para as tabelas */
              app.db({a: "articles", u: "users"})
                 .select("a.id", "a.name", "a.description", "a.imageURL", {author: "u.name"}) // author é um alias para o nome do campo name da tabela de users
-                .limit(limit).offset(page * limit - limit) // páginação
+                .limit(limit).offset(page * limit - limit) // lógica da paginação
                 .whereRaw("?? = ??", ['u.id', 'a.userId']) // restrição de chaves correspodentes(chave primária e estrangeira)
                 .whereIn('categoryId', ids)
                 .orderBy('a.id', 'desc')

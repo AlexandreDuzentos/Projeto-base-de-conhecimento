@@ -62,6 +62,8 @@
           </b-button>
         </template>
      </b-table>
+     <b-pagination size="md" v-model="page"
+     :total-rows="count" :per-page="limit" />
   </div>
 </template>
 
@@ -77,6 +79,9 @@
          mode: "save", // propriedade responsável por indicar em qual modo o formulário está
          user: {}, // objeto responsável por armazenar um user
          users: [], // objeto responsável por guardar uma coleção de objetos
+         page: 1,
+         count: 0,
+         limit: 0,
          fields: [
               {key: 'id', label: "Código", sortable: true},
               {key: 'name', label: "Nome", sortable: true},
@@ -91,9 +96,13 @@
      methods: {
         /* Função responsável por buscar todos os usuários do backend */
         loadUsers(){
-           const url = `${baseApiUrl}/users`
+           const url = `${baseApiUrl}/users?page=${this.page}`
            axios.get(url).then(res => {
-              this.users = res.data
+              this.users = res.data.data
+              this.count = res.data.count,
+              this.limit = res.data.limit
+              console.log(res.data)
+              return
            })
       },
      /* Função responsável por retornar o formulário ao estado inicial */
@@ -127,6 +136,15 @@
          this.user = {...user}
      }
     },
+    /*
+      Função responsável por monitorar o status de um atributo
+      do estado do meu componente.
+      */
+      watch: {
+      page(){
+           this.loadUsers()
+      }
+     },
     /* Método de ciclo de vida chamado quando o componente é renderizado */
     mounted(){
          this.loadUsers()

@@ -127,7 +127,6 @@
              this.articles = res.data.data
              this.count = res.data.count
              this.limit = res.data.limit
-             console.log(this.articles)
          })
 
      },
